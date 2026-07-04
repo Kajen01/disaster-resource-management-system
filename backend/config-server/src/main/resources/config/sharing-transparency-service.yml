@@ -1,0 +1,24 @@
+server:
+  port: 8084
+
+spring:
+  datasource:
+    url: jdbc:mysql://${SHARING_DB_HOST:localhost}:${SHARING_DB_PORT:3306}/${SHARING_DB_NAME:sharing_service_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${SHARING_DB_USERNAME:sharing_service}
+    password: ${SHARING_DB_PASSWORD:sharing_service}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  file:
+    name: ${LOG_PATH:logs}/sharing-transparency-service.log

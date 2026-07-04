@@ -1,0 +1,83 @@
+server:
+  port: 8080
+
+spring:
+  cloud:
+    gateway:
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          "[/**]":
+            allowedOrigins:
+              - http://localhost:5173
+              - http://127.0.0.1:5173
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders:
+              - "*"
+            exposedHeaders:
+              - "*"
+      routes:
+        - id: user-service
+          uri: lb://USER-SERVICE
+          predicates:
+            - Path=/api/auth/**,/api/users/**
+        - id: shelter-service
+          uri: lb://SHELTER-SERVICE
+          predicates:
+            - Path=/api/shelters/**
+        - id: resource-service
+          uri: lb://RESOURCE-SERVICE
+          predicates:
+            - Path=/api/resources/**
+        - id: sharing-service
+          uri: lb://SHARING-TRANSPARENCY-SERVICE
+          predicates:
+            - Path=/api/shares/**,/api/transparency/**
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+logging:
+  file:
+    name: ${LOG_PATH:logs}/api-gateway.log
+
+security:
+  jwt-secret: ZHJtcy1zaGFyZWQtc2VjcmV0LWRybXMtc2hhcmVkLXNlY3JldC1kcm1zLXNoYXJlZC1zZWNyZXQ=
+  public-paths:
+    - /api/auth/login
+    - /api/auth/register
+    - /actuator/health
+    - /swagger-ui/**
+    - /v3/api-docs/**
+  role-rules:
+    - path: /api/users/**
+      roles:
+        - ADMIN
+    - path: /api/admin/**
+      roles:
+        - ADMIN
+    - path: /api/shelters/**
+      roles:
+        - ADMIN
+        - SHELTER_MANAGER
+    - path: /api/resources/**
+      roles:
+        - ADMIN
+        - SHELTER_MANAGER
+        - DONOR
+    - path: /api/shares/**
+      roles:
+        - ADMIN
+        - SHELTER_MANAGER
+    - path: /api/transparency/**
+      roles:
+        - ADMIN
+        - DONOR
+        - SHELTER_MANAGER

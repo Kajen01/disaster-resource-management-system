@@ -1,0 +1,32 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:mysql://${USER_DB_HOST:localhost}:${USER_DB_PORT:3306}/${USER_DB_NAME:user_service_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${USER_DB_USERNAME:user_service}
+    password: ${USER_DB_PASSWORD:user_service}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    user:
+      name: disabled
+      password: disabled
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+security:
+  jwt:
+    secret: ZHJtcy1zaGFyZWQtc2VjcmV0LWRybXMtc2hhcmVkLXNlY3JldC1kcm1zLXNoYXJlZC1zZWNyZXQ=
+    expiration-minutes: 180
+
+logging:
+  file:
+    name: ${LOG_PATH:logs}/user-service.log

@@ -1,0 +1,24 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    url: jdbc:mysql://${SHELTER_DB_HOST:localhost}:${SHELTER_DB_PORT:3306}/${SHELTER_DB_NAME:shelter_service_db}?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: ${SHELTER_DB_USERNAME:shelter_service}
+    password: ${SHELTER_DB_PASSWORD:shelter_service}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+eureka:
+  instance:
+    prefer-ip-address: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  file:
+    name: ${LOG_PATH:logs}/shelter-service.log

@@ -1,0 +1,249 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+#   elasticsearch:
+#     image: docker.elastic.co/elasticsearch/elasticsearch:8.15.2
+#     environment:
+#       discovery.type: single-node
+#       xpack.security.enabled: "false"
+#       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+#     ports:
+#       - "9200:9200"
+# 
+#   logstash:
+#     image: docker.elastic.co/logstash/logstash:8.15.2
+#     volumes:
+#       - ../docker/elk/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+#     depends_on:
+#       - elasticsearch
+#     ports:
+#       - "5044:5044"
+# 
+#   kibana:
+#     image: docker.elastic.co/kibana/kibana:8.15.2
+#     environment:
+#       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+#     depends_on:
+#       - elasticsearch
+#     ports:
+#       - "5601:5601"
+# 
+#   filebeat:
+#     image: docker.elastic.co/beats/filebeat:8.15.2
+#     user: root
+#     volumes:
+#       - ../docker/elk/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+#       - ../../logs:/usr/share/filebeat/logs:ro
+#     depends_on:
+#       - logstash
+
+
+  mysql-user:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: user_service_db
+      MYSQL_USER: user_service
+      MYSQL_PASSWORD: user_service
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - ../../scripts/db-init/user-service.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  mysql-shelter:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: shelter_service_db
+      MYSQL_USER: shelter_service
+      MYSQL_PASSWORD: shelter_service
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3308:3306"
+    volumes:
+      - ../../scripts/db-init/shelter-service.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  mysql-resource:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: resource_service_db
+      MYSQL_USER: resource_service
+      MYSQL_PASSWORD: resource_service
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3309:3306"
+    volumes:
+      - ../../scripts/db-init/resource-service.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  mysql-sharing:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: sharing_service_db
+      MYSQL_USER: sharing_service
+      MYSQL_PASSWORD: sharing_service
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3310:3306"
+    volumes:
+      - ../../scripts/db-init/sharing-service.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  config-server:
+    build:
+      context: ../..
+      dockerfile: backend/config-server/Dockerfile
+    environment:
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8888:8888"
+    depends_on:
+      - rabbitmq
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 25
+      start_period: 15s
+
+  service-registry:
+    build:
+      context: ../..
+      dockerfile: backend/service-registry/Dockerfile
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8761:8761"
+    depends_on:
+      config-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 25
+      start_period: 15s
+
+  user-service:
+    build:
+      context: ../..
+      dockerfile: backend/user-service/Dockerfile
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_SERVER_URL: http://service-registry:8761/eureka
+      USER_DB_HOST: mysql-user
+      RABBITMQ_HOST: rabbitmq
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8081:8081"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      mysql-user:
+        condition: service_started
+
+  shelter-service:
+    build:
+      context: ../..
+      dockerfile: backend/shelter-service/Dockerfile
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_SERVER_URL: http://service-registry:8761/eureka
+      SHELTER_DB_HOST: mysql-shelter
+      RABBITMQ_HOST: rabbitmq
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8082:8082"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      mysql-shelter:
+        condition: service_started
+
+  resource-service:
+    build:
+      context: ../..
+      dockerfile: backend/resource-service/Dockerfile
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_SERVER_URL: http://service-registry:8761/eureka
+      RESOURCE_DB_HOST: mysql-resource
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_AUTO_STARTUP: "true"
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8083:8083"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      mysql-resource:
+        condition: service_started
+
+  sharing-transparency-service:
+    build:
+      context: ../..
+      dockerfile: backend/sharing-transparency-service/Dockerfile
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_SERVER_URL: http://service-registry:8761/eureka
+      SHARING_DB_HOST: mysql-sharing
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_AUTO_STARTUP: "true"
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8084:8084"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      mysql-sharing:
+        condition: service_started
+
+  api-gateway:
+    build:
+      context: ../..
+      dockerfile: backend/api-gateway/Dockerfile
+    environment:
+      CONFIG_SERVER_HOST: config-server
+      EUREKA_SERVER_URL: http://service-registry:8761/eureka
+      RABBITMQ_HOST: rabbitmq
+      LOG_PATH: /app/logs
+    volumes:
+      - ../../logs:/app/logs
+    ports:
+      - "8080:8080"
+    depends_on:
+      user-service:
+        condition: service_started
+      shelter-service:
+        condition: service_started
+      resource-service:
+        condition: service_started
+      sharing-transparency-service:
+        condition: service_started
+
+  web-client:
+    build:
+      context: ../..
+      dockerfile: frontend/web-client/Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      api-gateway:
+        condition: service_started

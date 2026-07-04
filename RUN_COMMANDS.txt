@@ -1,0 +1,248 @@
+Disaster Resource Management System - Run Commands
+==================================================
+
+Location
+--------
+This file is kept in the project root so the whole team can use one command reference.
+
+Project Root
+------------
+D:\disaster-resource-management-system
+
+
+1. Prerequisites
+----------------
+Install and confirm these tools first:
+
+java -version
+mvn -version
+node -v
+cmd /c npm -v
+docker --version
+docker compose version
+
+
+2. Build All Backend Services
+-----------------------------
+Run from project root:
+
+mvn clean install
+
+If you want to skip tests:
+
+mvn clean install -DskipTests
+
+
+3. Run Services Locally Without Docker
+--------------------------------------
+Important startup order:
+1. config-server
+2. service-registry
+3. user-service
+4. shelter-service
+5. resource-service
+6. sharing-transparency-service
+7. api-gateway
+8. frontend
+
+Open a separate terminal for each service.
+
+Config Server:
+mvn -f backend/config-server/pom.xml spring-boot:run
+
+Service Registry:
+mvn -f backend/service-registry/pom.xml spring-boot:run
+
+User Service:
+mvn -f backend/user-service/pom.xml spring-boot:run
+
+Shelter Service:
+mvn -f backend/shelter-service/pom.xml spring-boot:run
+
+Resource Service:
+mvn -f backend/resource-service/pom.xml spring-boot:run
+
+Sharing Transparency Service:
+mvn -f backend/sharing-transparency-service/pom.xml spring-boot:run
+
+API Gateway:
+mvn -f backend/api-gateway/pom.xml spring-boot:run
+
+Frontend:
+cmd /c npm install --prefix frontend/web-client
+cmd /c npm run dev --prefix frontend/web-client
+
+
+4. Run Full System With Docker Compose
+--------------------------------------
+Run from project root:
+
+First build backend jars locally:
+
+mvn clean install -DskipTests
+
+Then start the full stack:
+
+docker compose -f infra/compose/docker-compose.yml up --build
+
+Run in detached mode:
+
+docker compose -f infra/compose/docker-compose.yml up --build -d
+
+Stop the full stack:
+
+docker compose -f infra/compose/docker-compose.yml down
+
+Stop and remove volumes:
+
+docker compose -f infra/compose/docker-compose.yml down -v
+
+
+5. Frontend Only Commands
+-------------------------
+Install frontend dependencies:
+
+cmd /c npm install --prefix frontend/web-client
+
+Start frontend dev server:
+
+cmd /c npm run dev --prefix frontend/web-client
+
+Build frontend production bundle:
+
+cmd /c npm run build --prefix frontend/web-client
+
+Preview frontend production build:
+
+cmd /c npm run preview --prefix frontend/web-client
+
+
+6. Test Commands
+----------------
+Run all backend tests:
+
+mvn test
+
+Run tests for one service:
+
+mvn -f backend/user-service/pom.xml test
+mvn -f backend/shelter-service/pom.xml test
+mvn -f backend/resource-service/pom.xml test
+mvn -f backend/sharing-transparency-service/pom.xml test
+
+
+7. Package Commands
+-------------------
+Package one service jar:
+
+mvn -f backend/config-server/pom.xml clean package
+mvn -f backend/service-registry/pom.xml clean package
+mvn -f backend/api-gateway/pom.xml clean package
+mvn -f backend/user-service/pom.xml clean package
+mvn -f backend/shelter-service/pom.xml clean package
+mvn -f backend/resource-service/pom.xml clean package
+mvn -f backend/sharing-transparency-service/pom.xml clean package
+
+
+8. Useful Docker Commands
+-------------------------
+See running containers:
+
+docker ps
+
+See all containers:
+
+docker ps -a
+
+See compose logs:
+
+docker compose -f infra/compose/docker-compose.yml logs
+
+Follow compose logs:
+
+docker compose -f infra/compose/docker-compose.yml logs -f
+
+Rebuild one service:
+
+docker compose -f infra/compose/docker-compose.yml build api-gateway
+
+Restart one service:
+
+docker compose -f infra/compose/docker-compose.yml restart api-gateway
+
+
+9. Service URLs
+---------------
+Config Server:
+http://localhost:8888
+
+Service Registry:
+http://localhost:8761
+
+API Gateway:
+http://localhost:8080
+
+User Service:
+http://localhost:8081
+
+Shelter Service:
+http://localhost:8082
+
+Resource Service:
+http://localhost:8083
+
+Sharing Transparency Service:
+http://localhost:8084
+
+Frontend:
+http://localhost:5173
+
+RabbitMQ Management:
+http://localhost:15672
+
+Elasticsearch:
+http://localhost:9200
+
+Kibana:
+http://localhost:5601
+
+
+10. Swagger / API Docs
+----------------------
+User Service:
+http://localhost:8081/swagger-ui.html
+
+Shelter Service:
+http://localhost:8082/swagger-ui.html
+
+Resource Service:
+http://localhost:8083/swagger-ui.html
+
+Sharing Transparency Service:
+http://localhost:8084/swagger-ui.html
+
+Gateway OpenAPI UI:
+http://localhost:8080/swagger-ui.html
+
+
+11. Suggested First Demo Run
+----------------------------
+1. Start Docker Desktop
+2. Run:
+   docker compose -f infra/compose/docker-compose.yml up --build
+3. Open:
+   http://localhost:5173
+4. Use Postman collection:
+   postman/Disaster-Resource-System.postman_collection.json
+
+
+12. Notes
+---------
+- Run all commands from the project root unless a different path is shown.
+- If PowerShell blocks npm, use:
+  cmd /c npm -v
+  cmd /c npm install --prefix frontend/web-client
+  cmd /c npm run dev --prefix frontend/web-client
+- If Maven is not installed, install Maven and add it to PATH before running backend commands.
+- If Docker is not installed, install Docker Desktop before using compose commands.
+- Backend Docker images now copy prebuilt local jars from `backend/*/target`, so the Maven build step must be run before Docker Compose.

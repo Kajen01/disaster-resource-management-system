@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: shelter-service
+  config:
+    import: optional:configserver:http://${CONFIG_SERVER_HOST:localhost}:8888

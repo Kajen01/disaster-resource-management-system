@@ -1,0 +1,6 @@
+**
+
+!.dockerignore
+!backend/*/Dockerfile
+!backend/*/target/*.jar
+!frontend/web-client/**

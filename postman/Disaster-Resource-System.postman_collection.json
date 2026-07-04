@@ -1,0 +1,105 @@
+{
+  "info": {
+    "name": "Disaster Resource System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"fullName\": \"Admin User\",\n  \"email\": \"admin@drms.local\",\n  \"username\": \"admin\",\n  \"password\": \"Password123\",\n  \"role\": \"ADMIN\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@drms.local\",\n  \"password\": \"Password123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create Shelter",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shelters",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shelters"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Central Shelter\",\n  \"district\": \"Colombo\",\n  \"addressLine1\": \"Main Street\",\n  \"addressLine2\": \"\",\n  \"contactName\": \"Coordinator\",\n  \"contactPhone\": \"0771234567\",\n  \"managerUserId\": 2,\n  \"latitude\": 6.9271,\n  \"longitude\": 79.8612,\n  \"capacity\": 200,\n  \"occupancy\": 50,\n  \"status\": \"ACTIVE\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Intake Batch",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/resources/batches",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "resources", "batches"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"shelterId\": 1,\n  \"resourceType\": \"FOOD\",\n  \"resourceName\": \"Dry Rations\",\n  \"unit\": \"packs\",\n  \"quantityReceived\": 120,\n  \"expiryDate\": \"2026-12-31\",\n  \"sourceDonationRef\": \"DON-001\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Create Shortage",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/shares/requests",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "shares", "requests"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"shelterId\": 2,\n  \"resourceType\": \"FOOD\",\n  \"resourceName\": \"Dry Rations\",\n  \"unit\": \"packs\",\n  \"requiredQuantity\": 60,\n  \"justification\": \"Flood response intake surge\"\n}"
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" }
+  ]
+}
